@@ -1,5 +1,7 @@
 #include "nex8/ramdb/ram_table.hpp"
 
+#include <algorithm>
+
 namespace nex8::ramdb {
 
 Table::Table(TableSchema schema) : schema_(std::move(schema)), used_(schema_.maxRows, false) {}
@@ -43,6 +45,15 @@ bool Table::insert(const std::unordered_map<std::string, Value>& fields, RowId* 
         row.push_back(it->second);
     }
     return insert(row, assignedId, error);
+}
+
+bool Table::restore(RowId id, const Row& row, std::string* error) {
+    if (id >= used_.size()) { if (error) *error = "row id exceeds table capacity"; return false; }
+    if (used_[id]) { if (error) *error = "row id already in use"; return false; }
+    if (!validateRow(row, error)) return false;
+    used_[id] = true;
+    rows_.push_back(RowRecord{id, row});
+    return true;
 }
 
 std::optional<std::size_t> Table::storageIndex(RowId id) const {
