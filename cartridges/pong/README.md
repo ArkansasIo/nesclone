@@ -22,3 +22,7 @@ Install the cc65 toolchain (`ca65` and `ld65`) before producing a `.nes` image. 
 - The ball reflects from the top and bottom playfield.
 - A paddle collision reverses horizontal velocity.
 - Crossing a goal boundary increments the opposing player's score.
+
+## Status
+
+The sample still needs fully integrated PPU rendering, sprite DMA, controller bindings, paddle collisions, a linker configuration, generated CHR assets, and a tested cartridge packer before it should be described as a playable ROM.
