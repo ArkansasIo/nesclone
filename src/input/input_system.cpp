@@ -60,8 +60,19 @@ bool InputSystem::keyPressed(Key key) const {
 
 bool InputSystem::mouseDown(MouseButton button) const { return frame_.mouse.buttons[index(button)]; }
 
+bool InputSystem::mousePressed(MouseButton button) const {
+    return mouseDown(button) && !previous_.mouse.buttons[index(button)];
+}
+
 bool InputSystem::gamepadDown(std::size_t i, GamepadButton button) const {
     return i < frame_.gamepads.size() && frame_.gamepads[i].connected && frame_.gamepads[i].buttons[index(button)];
+}
+
+bool InputSystem::gamepadPressed(std::size_t i, GamepadButton button) const {
+    if (i >= frame_.gamepads.size() || !frame_.gamepads[i].connected) return false;
+    const bool now = frame_.gamepads[i].buttons[index(button)];
+    const bool before = previous_.gamepads[i].connected && previous_.gamepads[i].buttons[index(button)];
+    return now && !before;
 }
 
 float InputSystem::gamepadAxis(std::size_t i, GamepadAxis axis) const {
