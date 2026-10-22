@@ -2,7 +2,7 @@ name: Deploy NEX8 GitHub Pages
 
 on:
   push:
-    branches: [nex8-rebrand]
+    branches: [main]
     paths:
       - 'docs/**'
       - '.github/workflows/pages.yml'
