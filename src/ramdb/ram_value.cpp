@@ -1,7 +1,7 @@
 #include "nex8/ramdb/ram_value.hpp"
 
-#include <limits>
 #include <sstream>
+#include <type_traits>
 
 namespace nex8::ramdb {
 
@@ -24,20 +24,18 @@ bool valueFits(ValueType type, const Value& value) {
         using T = std::decay_t<decltype(item)>;
         switch (type) {
         case ValueType::UInt8:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> &&
-                   static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 255ULL;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 255ULL;
         case ValueType::UInt16:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> &&
-                   static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 65535ULL;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 65535ULL;
         case ValueType::UInt32:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> &&
-                   static_cast<long long>(item) >= 0;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0;
         case ValueType::Int8:
-            return std::is_integral_v<T> && static_cast<long long>(item) >= -128 && static_cast<long long>(item) <= 127;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= -128 && static_cast<long long>(item) <= 127;
         case ValueType::Int16:
-            return std::is_integral_v<T> && static_cast<long long>(item) >= -32768 && static_cast<long long>(item) <= 32767;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= -32768 && static_cast<long long>(item) <= 32767;
         case ValueType::Int32:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool>;
+            return std::is_integral_v<T> && !std::is_same_v<T, bool> &&
+                   static_cast<long long>(item) >= -2147483648LL && static_cast<long long>(item) <= 2147483647LL;
         case ValueType::Bool:
             return std::is_same_v<T, bool>;
         case ValueType::Text:
@@ -58,15 +56,14 @@ std::string valueToString(const Value& value) {
 
 bool valueEquals(const Value& lhs, const Value& rhs) {
     if (lhs.index() == rhs.index()) return lhs == rhs;
-    const bool lhsIntegral = std::holds_alternative<std::uint8_t>(lhs) || std::holds_alternative<std::uint16_t>(lhs) ||
-        std::holds_alternative<std::uint32_t>(lhs) || std::holds_alternative<std::int8_t>(lhs) ||
-        std::holds_alternative<std::int16_t>(lhs) || std::holds_alternative<std::int32_t>(lhs);
-    const bool rhsIntegral = std::holds_alternative<std::uint8_t>(rhs) || std::holds_alternative<std::uint16_t>(rhs) ||
-        std::holds_alternative<std::uint32_t>(rhs) || std::holds_alternative<std::int8_t>(rhs) ||
-        std::holds_alternative<std::int16_t>(rhs);
-    if (!lhsIntegral || !rhsIntegral) return false;
-    const auto toI64 = [](const Value& v) -> std::int64_t {
-        return std::visit([](const auto& item) -> std::int64_t { return static_cast<std::int64_t>(item); }, v);
+    const auto integral = [](const Value& value) {
+        return std::holds_alternative<std::uint8_t>(value) || std::holds_alternative<std::uint16_t>(value) ||
+               std::holds_alternative<std::uint32_t>(value) || std::holds_alternative<std::int8_t>(value) ||
+               std::holds_alternative<std::int16_t>(value) || std::holds_alternative<std::int32_t>(value);
+    };
+    if (!integral(lhs) || !integral(rhs)) return false;
+    const auto toI64 = [](const Value& value) -> std::int64_t {
+        return std::visit([](const auto& item) -> std::int64_t { return static_cast<std::int64_t>(item); }, value);
     };
     return toI64(lhs) == toI64(rhs);
 }
