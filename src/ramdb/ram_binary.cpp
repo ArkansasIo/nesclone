@@ -3,6 +3,7 @@
 #include <array>
 #include <fstream>
 #include <limits>
+#include <utility>
 
 namespace nex8::ramdb {
 namespace {
@@ -15,7 +16,6 @@ public:
     void u8(std::uint8_t v) { bytes.push_back(v); }
     void u16(std::uint16_t v) { u8(static_cast<std::uint8_t>(v & 0xFF)); u8(static_cast<std::uint8_t>((v >> 8) & 0xFF)); }
     void u32(std::uint32_t v) { u16(static_cast<std::uint16_t>(v)); u16(static_cast<std::uint16_t>(v >> 16)); }
-    void bytesRaw(const std::vector<std::uint8_t>& v) { bytes.insert(bytes.end(), v.begin(), v.end()); }
     void text(const std::string& s) {
         u16(static_cast<std::uint16_t>(s.size()));
         bytes.insert(bytes.end(), s.begin(), s.end());
@@ -85,9 +85,7 @@ BinaryImage serialize(const Database& database, std::string* error) {
     for (const auto c : Magic) w.u8(c);
     w.u8(Version);
     const auto names = database.tableNames();
-    if (names.size() > std::numeric_limits<std::uint16_t>::max()) {
-        fail(error, "too many tables"); return {};
-    }
+    if (names.size() > std::numeric_limits<std::uint16_t>::max()) { fail(error, "too many tables"); return {}; }
     w.u16(static_cast<std::uint16_t>(names.size()));
 
     for (const auto& name : names) {
@@ -106,9 +104,7 @@ BinaryImage serialize(const Database& database, std::string* error) {
             w.u16(column.size);
         }
         const auto rows = table->selectAll();
-        if (rows.size() > std::numeric_limits<std::uint16_t>::max()) {
-            fail(error, "too many rows"); return {};
-        }
+        if (rows.size() > std::numeric_limits<std::uint16_t>::max()) { fail(error, "too many rows"); return {}; }
         w.u16(static_cast<std::uint16_t>(rows.size()));
         for (const auto& row : rows) {
             w.u16(row.id);
@@ -132,16 +128,12 @@ bool deserialize(const std::vector<std::uint8_t>& bytes, Database& database, std
     for (std::uint16_t t = 0; t < tableCount; ++t) {
         TableSchema schema;
         std::uint16_t columnCount{};
-        if (!r.text(schema.name) || !r.u16(schema.rowSize) || !r.u16(schema.maxRows) || !r.u16(columnCount)) {
-            fail(error, "truncated N8DB table schema"); return false;
-        }
+        if (!r.text(schema.name) || !r.u16(schema.rowSize) || !r.u16(schema.maxRows) || !r.u16(columnCount)) { fail(error, "truncated N8DB table schema"); return false; }
         schema.columns.reserve(columnCount);
         for (std::uint16_t c = 0; c < columnCount; ++c) {
             Column column;
             std::uint8_t type{};
-            if (!r.text(column.name) || !r.u8(type) || !r.u16(column.offset) || !r.u16(column.size) || type > static_cast<std::uint8_t>(ValueType::Text)) {
-                fail(error, "invalid N8DB column"); return false;
-            }
+            if (!r.text(column.name) || !r.u8(type) || !r.u16(column.offset) || !r.u16(column.size) || type > static_cast<std::uint8_t>(ValueType::Text)) { fail(error, "invalid N8DB column"); return false; }
             column.type = static_cast<ValueType>(type);
             schema.columns.push_back(std::move(column));
         }
@@ -149,6 +141,7 @@ bool deserialize(const std::vector<std::uint8_t>& bytes, Database& database, std
         Table* table = decoded.table(schema.name);
         std::uint16_t rowCount{};
         if (!table || !r.u16(rowCount)) { fail(error, "truncated N8DB rows"); return false; }
+        if (rowCount > schema.maxRows) { fail(error, "N8DB row count exceeds table capacity"); return false; }
         for (std::uint16_t i = 0; i < rowCount; ++i) {
             std::uint16_t id{}; if (!r.u16(id)) { fail(error, "truncated N8DB row id"); return false; }
             Row row; row.reserve(schema.columns.size());
@@ -156,8 +149,7 @@ bool deserialize(const std::vector<std::uint8_t>& bytes, Database& database, std
                 Value value; if (!readValue(r, column.type, value)) { fail(error, "truncated or invalid N8DB value"); return false; }
                 row.push_back(std::move(value));
             }
-            RowId assigned{};
-            if (!table->insert(row, &assigned, error) || assigned != id) { fail(error, "invalid N8DB row id sequence"); return false; }
+            if (!table->restore(static_cast<RowId>(id), row, error)) return false;
         }
     }
     if (!r.atEnd()) { fail(error, "trailing bytes in N8DB image"); return false; }
@@ -178,9 +170,9 @@ bool saveBinary(const Database& database, const std::string& path, std::string* 
 bool loadBinary(const std::string& path, Database& database, std::string* error) {
     std::ifstream in(path, std::ios::binary);
     if (!in) { fail(error, "unable to open N8DB input file"); return false; }
-    const auto begin = in.tellg(); in.seekg(0, std::ios::end); const auto end = in.tellg(); in.seekg(begin);
-    if (begin < 0 || end < begin) { fail(error, "unable to determine N8DB file size"); return false; }
-    const auto size = static_cast<std::size_t>(end - begin);
+    in.seekg(0, std::ios::end); const auto end = in.tellg(); in.seekg(0, std::ios::beg);
+    if (end < 0) { fail(error, "unable to determine N8DB file size"); return false; }
+    const auto size = static_cast<std::size_t>(end);
     std::vector<std::uint8_t> bytes(size);
     if (size != 0) in.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(size));
     if (!in && size != 0) { fail(error, "unable to read N8DB input file"); return false; }
