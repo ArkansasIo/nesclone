@@ -1,0 +1,19 @@
+{
+  "format": "NESCLONE-CARTRIDGE",
+  "version": 1,
+  "id": "pong",
+  "name": "NESClone Pong",
+  "mapper": 0,
+  "prgSize": 32768,
+  "chrSize": 8192,
+  "cartridgeSources": {
+    "assembly": ["asm/reset.s", "asm/game.s"],
+    "chr": "assets/pong.chr"
+  },
+  "hostSources": {
+    "cpp23": ["cpp/PongGame.cpp", "cpp/PongGame.hpp"],
+    "lua": ["lua/game.lua"]
+  },
+  "entry": "asm/reset.s",
+  "output": "build/pong.nes"
+}
