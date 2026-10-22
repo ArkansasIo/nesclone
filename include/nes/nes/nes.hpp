@@ -1,9 +1,12 @@
 #pragma once
 #include "nes/cartridge/ines.hpp"
+#include "nes/cartridge/mapper.hpp"
 #include "nes/controller/controller.hpp"
 #include "nes/cpu/cpu6502.hpp"
 #include "nes/nes/bus.hpp"
+#include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace nes {
