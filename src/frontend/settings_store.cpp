@@ -1,6 +1,7 @@
 #include "nes/frontend/settings_store.hpp"
 #include <fstream>
 #include <iomanip>
+#include <sstream>
 
 namespace nes::frontend {
 SettingsStore::SettingsStore(std::filesystem::path path) : path_(std::move(path)) {}
