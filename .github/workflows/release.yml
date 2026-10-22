@@ -1,0 +1,43 @@
+name: Release packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: windows
+          - os: ubuntu-latest
+            artifact: linux
+          - os: macos-latest
+            artifact: macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package binaries
+        shell: bash
+        run: |
+          mkdir -p package
+          if [ -d build/Release ]; then cp build/Release/nesclone* package/ 2>/dev/null || true; fi
+          if [ -f build/nesclone ]; then cp build/nesclone package/; fi
+          if [ -f build/nesrom ]; then cp build/nesrom package/; fi
+          if [ -f build/neslogic ]; then cp build/neslogic package/; fi
+          cp README.md LICENSE package/
+          cd package
+          sha256sum * > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nesclone-${{ matrix.artifact }}
+          path: package/
