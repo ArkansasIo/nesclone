@@ -1,37 +1,27 @@
-# NESClone 8-bit game console platform
+# NESClone: 8-bit console software platform
 
-## Product definition
+NESClone is a desktop-hosted 8-bit console emulator and development environment, initially targeting the NTSC NES family: 6502-compatible CPU, PPU, APU, cartridge boards and controller ports.
 
-NESClone is a desktop-hosted 8-bit console development and emulation platform inspired by the classic 8-bit cartridge console generation. Its first compatibility target is the original NTSC NES family: 6502-compatible CPU, tile/sprite PPU, APU audio, controller ports and ROM cartridges.
+This repository currently describes and builds software, not a completed physical PCB console. A physical device requires schematics, PCB layout, cartridge connector design, signal/electrical verification, power/thermal work and component selection.
 
-The project is not a physical console design yet. A real hardware clone would additionally need schematics, PCB layout, signal/electrical validation, cartridge connector design, power/thermal analysis and licensed component choices. The current repository delivers the software platform and homebrew toolchain groundwork.
+## Boot path
+Application start -> XMB-style dashboard -> Games -> local cartridge library -> load ROM -> emulation window -> controller input -> return to dashboard.
 
-## User experience
+## Runtime boundary
+- Host C++23 runs emulator, UI and utilities.
+- NES cartridges execute 6502 machine code.
+- NESLogic is a host-side scripting prototype for tools and game-logic experiments.
+- Assembly builds PRG-ROM; CHR assets provide graphics.
+- Native host C++23 binaries cannot be copied to a real NES cartridge.
 
-Boot -> XMB-style home dashboard -> choose Game Library -> select a user-provided .nes cartridge -> load into emulator -> play with configurable controller -> save data and return to dashboard.
+## Milestones
+1. Cross-platform CI/build.
+2. Full 6502 opcode/addressing/cycle behavior and CPU tests.
+3. PPU background/sprite rendering, NMI and DMA.
+4. APU channels and audio output.
+5. Mapper support with per-board tests.
+6. XMB GUI renderer, game library and controller support.
+7. ROM/CHR/NAM/palette tools and SDK.
+8. Signed packages, compatibility matrix and safe updates.
 
-Dashboard categories: Games, Cartridges, Controllers, Tools, Settings, System. Disabled rows represent features without a working implementation and must be enabled only when their backend exists.
-
-## 8-bit design constraints
-
-- CPU register and address behavior uses fixed-width integers.
-- ROMs contain 6502 machine code and graphics data, not host C++23 binaries.
-- NESLogic scripts and the C++23 emulator execute on the host computer.
-- Cartridge format and mapper support vary; initial hardware board support is NROM (mapper 0).
-- Keep hardware timing and CPU/PPU/APU responsibilities separate.
-- Target original 256x240 output with nearest-neighbor scaling and optional integer scaling.
-
-## Milestone gates
-
-1. Build/test on Windows, macOS and Linux.
-2. Complete official 6502 instructions and CPU test ROM compatibility.
-3. Implement PPU background and sprite rendering plus NMI/DMA timing.
-4. Implement APU channel emulation and audio output.
-5. Add mappers individually and test each one.
-6. Add a usable XMB frontend and controller integration.
-7. Finish ROM/CHR tools, SDK, save-state format and packaging.
-8. Publish only with a clear compatibility matrix and ROM/legal notice.
-
-## Games and software
-
-The repository may include original homebrew source, generated test ROMs and public-domain assets whose licenses are recorded. Commercial games and copyrighted ROM images are not bundled. Users select local ROMs they are legally entitled to use.
+Only mark a subsystem complete after executable tests validate it.
