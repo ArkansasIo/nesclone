@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(NEX8 VERSION 0.6.0 LANGUAGES CXX)
+project(NEX8 VERSION 0.7.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -8,6 +8,7 @@ option(NESCLONE_BUILD_TESTS "Build unit tests" ON)
 option(NESCLONE_BUILD_SCRIPTING "Build NESLogic scripting prototype" ON)
 option(NESCLONE_BUILD_TOOLS "Build ROM and asset diagnostic tools" ON)
 option(NEX8_BUILD_ENGINE "Build NEX8 host-side game engine and Studio project services" ON)
+option(NEX8_BUILD_CELL8 "Build experimental CELL8 hardware model" ON)
 
 add_library(nes_core
     src/apu/apu.cpp src/cartridge/ines.cpp src/cartridge/mapper_factory.cpp src/cartridge/nrom.cpp
@@ -23,7 +24,6 @@ else()
 endif()
 
 add_executable(nesclone src/main.cpp)
-add_executable(nex8 ALIAS nesclone)
 target_link_libraries(nesclone PRIVATE nes_core)
 
 if(NEX8_BUILD_ENGINE)
@@ -33,6 +33,21 @@ if(NEX8_BUILD_ENGINE)
         target_compile_options(nex8_engine PRIVATE /W4 /permissive-)
     else()
         target_compile_options(nex8_engine PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
+    endif()
+endif()
+
+if(NEX8_BUILD_CELL8)
+    add_library(cell8_model
+        src/cell8/cell8_cpu.cpp
+        src/cell8/cell8_gpu.cpp
+        src/cell8/cell8_spu.cpp
+        src/cell8/dma_controller.cpp
+        src/cell8/cartridge_image.cpp)
+    target_include_directories(cell8_model PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    if(MSVC)
+        target_compile_options(cell8_model PRIVATE /W4 /permissive-)
+    else()
+        target_compile_options(cell8_model PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
     endif()
 endif()
 
@@ -79,5 +94,10 @@ if(NESCLONE_BUILD_TESTS)
         add_executable(nex8_engine_tests tests/engine_tests.cpp)
         target_link_libraries(nex8_engine_tests PRIVATE nex8_engine)
         add_test(NAME nex8_engine_tests COMMAND nex8_engine_tests)
+    endif()
+    if(NEX8_BUILD_CELL8)
+        add_executable(cell8_tests tests/cell8_tests.cpp)
+        target_link_libraries(cell8_tests PRIVATE cell8_model)
+        add_test(NAME cell8_tests COMMAND cell8_tests)
     endif()
 endif()
