@@ -60,7 +60,9 @@ public:
     [[nodiscard]] bool keyDown(Key key) const;
     [[nodiscard]] bool keyPressed(Key key) const;
     [[nodiscard]] bool mouseDown(MouseButton button) const;
+    [[nodiscard]] bool mousePressed(MouseButton button) const;
     [[nodiscard]] bool gamepadDown(std::size_t index, GamepadButton button) const;
+    [[nodiscard]] bool gamepadPressed(std::size_t index, GamepadButton button) const;
     [[nodiscard]] float gamepadAxis(std::size_t index, GamepadAxis axis) const;
     [[nodiscard]] const MouseState& mouse() const noexcept { return frame_.mouse; }
     [[nodiscard]] const InputFrame& frame() const noexcept { return frame_; }
