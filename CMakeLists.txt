@@ -42,7 +42,7 @@ endif()
 if(NEX8_BUILD_RAMDB)
     add_library(nex8_ramdb
         src/ramdb/ram_value.cpp src/ramdb/ram_schema.cpp src/ramdb/ram_table.cpp
-        src/ramdb/ram_database.cpp src/ramdb/ram_sql.cpp)
+        src/ramdb/ram_database.cpp src/ramdb/ram_sql.cpp src/ramdb/ram_binary.cpp)
     target_include_directories(nex8_ramdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(MSVC)
         target_compile_options(nex8_ramdb PRIVATE /W4 /permissive-)
@@ -132,6 +132,5 @@ if(NESCLONE_BUILD_TESTS)
         add_executable(cell8_tests tests/cell8_tests.cpp)
         target_link_libraries(cell8_tests PRIVATE cell8_model)
         add_test(NAME cell8_tests COMMAND cell8_tests)
-        
     endif()
 endif()
