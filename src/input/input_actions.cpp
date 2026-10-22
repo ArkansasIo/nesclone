@@ -40,6 +40,8 @@ bool ActionMap::down(Action action, const InputSystem& input) const {
 }
 
 bool ActionMap::pressed(Action action, const InputSystem& input) const {
+    // Axis edge detection is intentionally handled by InputSystem in a later
+    // revision; button/key bindings provide deterministic press semantics now.
     for (const auto& b : bindings(action)) {
         switch (b.type) {
         case BindingType::Key:
@@ -51,14 +53,8 @@ bool ActionMap::pressed(Action action, const InputSystem& input) const {
         case BindingType::GamepadButton:
             if (input.gamepadPressed(b.gamepad, b.gamepadButton)) return true;
             break;
-        case BindingType::GamepadAxis: {
-            const float v = input.gamepadAxis(b.gamepad, b.gamepadAxis);
-            if ((b.positive && v >= b.threshold) || (!b.positive && v <= -b.threshold)) {
-                const float previous = input.frame().gamepads[b.gamepad].axes[static_cast<std::size_t>(b.gamepadAxis)];
-                (void)previous;
-            }
+        case BindingType::GamepadAxis:
             break;
-        }
         }
     }
     return false;
