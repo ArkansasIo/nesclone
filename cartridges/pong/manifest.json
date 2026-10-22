@@ -1,0 +1,21 @@
+{
+  "format": "NESCLONE-CARTRIDGE",
+  "version": 1,
+  "id": "pong",
+  "name": "NESClone Pong",
+  "target": {
+    "system": "NES",
+    "mapper": 0,
+    "prg_rom_bytes": 32768,
+    "chr_rom_bytes": 8192,
+    "format": "iNES"
+  },
+  "sources": {
+    "assembly": ["asm/reset.s", "asm/game.s"],
+    "host_cpp23": ["cpp/PongGame.cpp"],
+    "lua_rules": ["lua/game.lua"]
+  },
+  "linker_config": "cfg/nrom-32k.cfg",
+  "output": "build/pong.nes",
+  "notes": "Only assembled and linked 6502 sources become the native cartridge. C++23 and Lua are host-side source layers."
+}
