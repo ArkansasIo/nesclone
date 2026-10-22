@@ -3,8 +3,8 @@
 
 namespace nes {
 namespace {
-constexpr u8 CARRY_FLAG_FLAG = 0x01, ZERO_FLAG_FLAG = 0x02, IRQ_DISABLE_FLAG_FLAG = 0x04, DECIMAL_FLAG_FLAG = 0x08;
-constexpr u8 BREAK_STATUS_FLAG = 0x10, UNUSED_FLAG_FLAG = 0x20, OVER_FLAG = 0x40, NEG_FLAG = 0x80;
+constexpr u8 CARRY_FLAG = 0x01, ZERO_FLAG = 0x02, IRQ_DISABLE_FLAG = 0x04, DECIMAL_FLAG = 0x08;
+constexpr u8 BREAK_STATUS_FLAG = 0x10, UNUSED_FLAG = 0x20, OVER_FLAG = 0x40, NEG_FLAG = 0x80;
 }
 Cpu6502::Cpu6502(Bus& bus) : bus_(bus) {}
 u8 Cpu6502::read(u16 a) { return bus_.read(a); }
@@ -14,23 +14,23 @@ u16 Cpu6502::fetch16() { const u8 lo = fetch(); const u8 hi = fetch(); return st
 void Cpu6502::push(u8 value) { write(static_cast<u16>(0x0100u | r_.sp), value); --r_.sp; }
 u8 Cpu6502::pop() { ++r_.sp; return read(static_cast<u16>(0x0100u | r_.sp)); }
 bool Cpu6502::flag(u8 mask) const { return (r_.p & mask) != 0; }
-void Cpu6502::setFlag(u8 mask, bool value) { r_.p = value ? static_cast<u8>(r_.p | mask) : static_cast<u8>(r_.p & static_cast<u8>(~mask)); r_.p |= UNUSED_FLAG_FLAG; }
-void Cpu6502::setZN(u8 v) { setFlag(ZERO_FLAG_FLAG, v == 0); setFlag(NEG_FLAG, (v & 0x80) != 0); }
+void Cpu6502::setFlag(u8 mask, bool value) { r_.p = value ? static_cast<u8>(r_.p | mask) : static_cast<u8>(r_.p & static_cast<u8>(~mask)); r_.p |= UNUSED_FLAG; }
+void Cpu6502::setZN(u8 v) { setFlag(ZERO_FLAG, v == 0); setFlag(NEG_FLAG, (v & 0x80) != 0); }
 void Cpu6502::reset() {
-    r_ = {}; r_.sp = 0xFD; r_.p = static_cast<u8>(IRQ_DISABLE_FLAG_FLAG | UNUSED_FLAG_FLAG);
+    r_ = {}; r_.sp = 0xFD; r_.p = static_cast<u8>(IRQ_DISABLE_FLAG | UNUSED_FLAG);
     halted_ = false; remainingCycles_ = 7; cycles_ = 0;
     const u8 lo = read(0xFFFC); const u8 hi = read(0xFFFD);
     r_.pc = static_cast<u16>(lo | (static_cast<u16>(hi) << 8));
 }
 void Cpu6502::serviceInterrupt(u16 vector, bool breakFlag) {
     push(static_cast<u8>(r_.pc >> 8)); push(static_cast<u8>(r_.pc & 0xFF));
-    u8 pushed = static_cast<u8>((r_.p | UNUSED_FLAG_FLAG) & static_cast<u8>(~BREAK_STATUS_FLAG));
+    u8 pushed = static_cast<u8>((r_.p | UNUSED_FLAG) & static_cast<u8>(~BREAK_STATUS_FLAG));
     if (breakFlag) pushed |= BREAK_STATUS_FLAG;
-    push(pushed); setFlag(IRQ_DISABLE_FLAG_FLAG, true);
+    push(pushed); setFlag(IRQ_DISABLE_FLAG, true);
     const u8 lo = read(vector); const u8 hi = read(static_cast<u16>(vector + 1));
     r_.pc = static_cast<u16>(lo | (static_cast<u16>(hi) << 8)); remainingCycles_ = 7;
 }
-void Cpu6502::irq() { if (!flag(IRQ_DISABLE_FLAG_FLAG)) serviceInterrupt(0xFFFE, false); }
+void Cpu6502::irq() { if (!flag(IRQ_DISABLE_FLAG)) serviceInterrupt(0xFFFE, false); }
 void Cpu6502::nmi() { serviceInterrupt(0xFFFA, false); }
 void Cpu6502::clock() {
     if (halted_) { ++cycles_; return; }
@@ -101,8 +101,8 @@ void Cpu6502::execute(u8 op) {
     case 0xC8: ++r_.y; setZN(r_.y); setCycles(2); break;
     case 0x88: --r_.y; setZN(r_.y); setCycles(2); break;
 
-    case 0x69: { const u8 v=fetch(); const u16 sum=static_cast<u16>(r_.a)+v+(flag(CARRY_FLAG_FLAG)?1u:0u); const u8 out=static_cast<u8>(sum); setFlag(CARRY_FLAG_FLAG,sum>0xFF); setFlag(OVER_FLAG,((~(r_.a^v)&(r_.a^out)&0x80)!=0)); r_.a=out; setZN(r_.a); setCycles(2); break; }
-    case 0xE9: case 0xEB: { const u8 v=static_cast<u8>(~fetch()); const u16 sum=static_cast<u16>(r_.a)+v+(flag(CARRY_FLAG_FLAG)?1u:0u); const u8 out=static_cast<u8>(sum); setFlag(CARRY_FLAG_FLAG,sum>0xFF); setFlag(OVER_FLAG,((~(r_.a^v)&(r_.a^out)&0x80)!=0)); r_.a=out; setZN(r_.a); setCycles(2); break; }
+    case 0x69: { const u8 v=fetch(); const u16 sum=static_cast<u16>(r_.a)+v+(flag(CARRY_FLAG)?1u:0u); const u8 out=static_cast<u8>(sum); setFlag(CARRY_FLAG,sum>0xFF); setFlag(OVER_FLAG,((~(r_.a^v)&(r_.a^out)&0x80)!=0)); r_.a=out; setZN(r_.a); setCycles(2); break; }
+    case 0xE9: case 0xEB: { const u8 v=static_cast<u8>(~fetch()); const u16 sum=static_cast<u16>(r_.a)+v+(flag(CARRY_FLAG)?1u:0u); const u8 out=static_cast<u8>(sum); setFlag(CARRY_FLAG,sum>0xFF); setFlag(OVER_FLAG,((~(r_.a^v)&(r_.a^out)&0x80)!=0)); r_.a=out; setZN(r_.a); setCycles(2); break; }
     case 0x29: r_.a &= fetch(); setZN(r_.a); setCycles(2); break;
     case 0x25: r_.a &= read(fetch()); setZN(r_.a); setCycles(3); break;
     case 0x2D: r_.a &= read(fetch16()); setZN(r_.a); setCycles(4); break;
@@ -113,9 +113,9 @@ void Cpu6502::execute(u8 op) {
     case 0x45: r_.a ^= read(fetch()); setZN(r_.a); setCycles(3); break;
     case 0x4D: r_.a ^= read(fetch16()); setZN(r_.a); setCycles(4); break;
 
-    case 0xC9: case 0xC5: case 0xCD: { const u8 v=op==0xC9?fetch():(op==0xC5?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.a-v); setFlag(CARRY_FLAG_FLAG,r_.a>=v); setZN(out); setCycles(op==0xC9?2:(op==0xC5?3:4)); break; }
-    case 0xE0: case 0xE4: case 0xEC: { const u8 v=op==0xE0?fetch():(op==0xE4?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.x-v); setFlag(CARRY_FLAG_FLAG,r_.x>=v); setZN(out); setCycles(op==0xE0?2:(op==0xE4?3:4)); break; }
-    case 0xC0: case 0xC4: case 0xCC: { const u8 v=op==0xC0?fetch():(op==0xC4?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.y-v); setFlag(CARRY_FLAG_FLAG,r_.y>=v); setZN(out); setCycles(op==0xC0?2:(op==0xC4?3:4)); break; }
+    case 0xC9: case 0xC5: case 0xCD: { const u8 v=op==0xC9?fetch():(op==0xC5?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.a-v); setFlag(CARRY_FLAG,r_.a>=v); setZN(out); setCycles(op==0xC9?2:(op==0xC5?3:4)); break; }
+    case 0xE0: case 0xE4: case 0xEC: { const u8 v=op==0xE0?fetch():(op==0xE4?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.x-v); setFlag(CARRY_FLAG,r_.x>=v); setZN(out); setCycles(op==0xE0?2:(op==0xE4?3:4)); break; }
+    case 0xC0: case 0xC4: case 0xCC: { const u8 v=op==0xC0?fetch():(op==0xC4?read(fetch()):read(fetch16())); const u8 out=static_cast<u8>(r_.y-v); setFlag(CARRY_FLAG,r_.y>=v); setZN(out); setCycles(op==0xC0?2:(op==0xC4?3:4)); break; }
 
     case 0xE6: { const u8 a=fetch(); const u8 v=static_cast<u8>(read(a)+1); write(a,v); setZN(v); setCycles(5); break; }
     case 0xF6: { const u8 a=zpX(); const u8 v=static_cast<u8>(read(a)+1); write(a,v); setZN(v); setCycles(6); break; }
@@ -126,37 +126,37 @@ void Cpu6502::execute(u8 op) {
     case 0xCE: { const u16 a=fetch16(); const u8 v=static_cast<u8>(read(a)-1); write(a,v); setZN(v); setCycles(6); break; }
     case 0xDE: { const u16 a=absX(); const u8 v=static_cast<u8>(read(a)-1); write(a,v); setZN(v); setCycles(7); break; }
 
-    case 0x0A: setFlag(CARRY_FLAG_FLAG,(r_.a&0x80)!=0); r_.a=static_cast<u8>(r_.a<<1); setZN(r_.a); setCycles(2); break;
-    case 0x4A: setFlag(CARRY_FLAG_FLAG,(r_.a&1)!=0); r_.a=static_cast<u8>(r_.a>>1); setZN(r_.a); setCycles(2); break;
-    case 0x2A: { const bool c=flag(CARRY_FLAG_FLAG); setFlag(CARRY_FLAG_FLAG,(r_.a&0x80)!=0); r_.a=static_cast<u8>((r_.a<<1)|(c?1:0)); setZN(r_.a); setCycles(2); break; }
-    case 0x6A: { const bool c=flag(CARRY_FLAG_FLAG); setFlag(CARRY_FLAG_FLAG,(r_.a&1)!=0); r_.a=static_cast<u8>((r_.a>>1)|(c?0x80:0)); setZN(r_.a); setCycles(2); break; }
+    case 0x0A: setFlag(CARRY_FLAG,(r_.a&0x80)!=0); r_.a=static_cast<u8>(r_.a<<1); setZN(r_.a); setCycles(2); break;
+    case 0x4A: setFlag(CARRY_FLAG,(r_.a&1)!=0); r_.a=static_cast<u8>(r_.a>>1); setZN(r_.a); setCycles(2); break;
+    case 0x2A: { const bool c=flag(CARRY_FLAG); setFlag(CARRY_FLAG,(r_.a&0x80)!=0); r_.a=static_cast<u8>((r_.a<<1)|(c?1:0)); setZN(r_.a); setCycles(2); break; }
+    case 0x6A: { const bool c=flag(CARRY_FLAG); setFlag(CARRY_FLAG,(r_.a&1)!=0); r_.a=static_cast<u8>((r_.a>>1)|(c?0x80:0)); setZN(r_.a); setCycles(2); break; }
 
-    case 0x18: setFlag(CARRY_FLAG_FLAG,false); setCycles(2); break;
-    case 0x38: setFlag(CARRY_FLAG_FLAG,true); setCycles(2); break;
-    case 0x58: setFlag(IRQ_DISABLE_FLAG_FLAG,false); setCycles(2); break;
-    case 0x78: setFlag(IRQ_DISABLE_FLAG_FLAG,true); setCycles(2); break;
+    case 0x18: setFlag(CARRY_FLAG,false); setCycles(2); break;
+    case 0x38: setFlag(CARRY_FLAG,true); setCycles(2); break;
+    case 0x58: setFlag(IRQ_DISABLE_FLAG,false); setCycles(2); break;
+    case 0x78: setFlag(IRQ_DISABLE_FLAG,true); setCycles(2); break;
     case 0xB8: setFlag(OVER_FLAG,false); setCycles(2); break;
-    case 0xD8: setFlag(DECIMAL_FLAG_FLAG,false); setCycles(2); break;
-    case 0xF8: setFlag(DECIMAL_FLAG_FLAG,true); setCycles(2); break;
+    case 0xD8: setFlag(DECIMAL_FLAG,false); setCycles(2); break;
+    case 0xF8: setFlag(DECIMAL_FLAG,true); setCycles(2); break;
 
     case 0x4C: r_.pc=fetch16(); setCycles(3); break;
     case 0x6C: { const u16 ptr=fetch16(); const u8 lo=read(ptr); const u16 hiAddr=static_cast<u16>((ptr&0xFF00)|((ptr+1)&0x00FF)); r_.pc=static_cast<u16>(lo|(static_cast<u16>(read(hiAddr))<<8)); setCycles(5); break; }
     case 0x20: { const u16 target=fetch16(); const u16 ret=static_cast<u16>(r_.pc-1); push(static_cast<u8>(ret>>8)); push(static_cast<u8>(ret)); r_.pc=target; setCycles(6); break; }
     case 0x60: { const u8 lo=pop(); const u8 hi=pop(); r_.pc=static_cast<u16>((lo|(static_cast<u16>(hi)<<8))+1); setCycles(6); break; }
-    case 0x40: { r_.p=static_cast<u8>((pop()|UNUSED_FLAG_FLAG)&static_cast<u8>(~BREAK_STATUS_FLAG)); const u8 lo=pop(); const u8 hi=pop(); r_.pc=static_cast<u16>(lo|(static_cast<u16>(hi)<<8)); setCycles(6); break; }
+    case 0x40: { r_.p=static_cast<u8>((pop()|UNUSED_FLAG)&static_cast<u8>(~BREAK_STATUS_FLAG)); const u8 lo=pop(); const u8 hi=pop(); r_.pc=static_cast<u16>(lo|(static_cast<u16>(hi)<<8)); setCycles(6); break; }
     case 0x48: push(r_.a); setCycles(3); break;
     case 0x68: r_.a=pop(); setZN(r_.a); setCycles(4); break;
-    case 0x08: push(static_cast<u8>(r_.p|BREAK_STATUS_FLAG|UNUSED_FLAG_FLAG)); setCycles(3); break;
-    case 0x28: r_.p=static_cast<u8>((pop()|UNUSED_FLAG_FLAG)&static_cast<u8>(~BREAK_STATUS_FLAG)); setCycles(4); break;
+    case 0x08: push(static_cast<u8>(r_.p|BREAK_STATUS_FLAG|UNUSED_FLAG)); setCycles(3); break;
+    case 0x28: r_.p=static_cast<u8>((pop()|UNUSED_FLAG)&static_cast<u8>(~BREAK_STATUS_FLAG)); setCycles(4); break;
 
     case 0x10: branch(!flag(NEG_FLAG)); break;
     case 0x30: branch(flag(NEG_FLAG)); break;
     case 0x50: branch(!flag(OVER_FLAG)); break;
     case 0x70: branch(flag(OVER_FLAG)); break;
-    case 0x90: branch(!flag(CARRY_FLAG_FLAG)); break;
-    case 0xB0: branch(flag(CARRY_FLAG_FLAG)); break;
-    case 0xD0: branch(!flag(ZERO_FLAG_FLAG)); break;
-    case 0xF0: branch(flag(ZERO_FLAG_FLAG)); break;
+    case 0x90: branch(!flag(CARRY_FLAG)); break;
+    case 0xB0: branch(flag(CARRY_FLAG)); break;
+    case 0xD0: branch(!flag(ZERO_FLAG)); break;
+    case 0xF0: branch(flag(ZERO_FLAG)); break;
 
     default: halted_ = true; setCycles(1); break;
     }
