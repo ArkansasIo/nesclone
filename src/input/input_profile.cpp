@@ -3,8 +3,10 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace nex8::input {
@@ -17,9 +19,7 @@ std::vector<std::string> split(std::string_view value, char delimiter) {
         if (ch == delimiter) {
             parts.push_back(current);
             current.clear();
-        } else {
-            current += ch;
-        }
+        } else current += ch;
     }
     parts.push_back(current);
     return parts;
@@ -42,8 +42,7 @@ std::optional<Action> actionFromName(std::string_view name) {
         Action::MoveUp, Action::MoveDown, Action::MoveLeft, Action::MoveRight,
         Action::Fire, Action::Jump, Action::Select, Action::Start, Action::Pause, Action::Menu,
         Action::CameraUp, Action::CameraDown, Action::CameraLeft, Action::CameraRight,
-        Action::MousePrimary, Action::MouseSecondary
-    };
+        Action::MousePrimary, Action::MouseSecondary};
     const ActionMap names;
     for (const auto action : all) if (names.actionName(action) == name) return action;
     return std::nullopt;
@@ -95,27 +94,17 @@ InputProfile makeDefaultInputProfile() { return InputProfile{}; }
 InputProfile makeKeyboardMouseProfile() {
     auto profile = makeDefaultInputProfile();
     profile.name = "Keyboard + Mouse";
-    profile.gamepadDeadZone = 0.20f;
     return profile;
 }
 
 InputProfile makeModernGamepadProfile() {
     auto profile = makeDefaultInputProfile();
     profile.name = "Modern Gamepad";
-    profile.actions.clear(Action::MoveUp);
-    profile.actions.clear(Action::MoveDown);
-    profile.actions.clear(Action::MoveLeft);
-    profile.actions.clear(Action::MoveRight);
-    profile.actions.bind(Action::MoveUp, {BindingType::GamepadButton, Key::Unknown, MouseButton::Left, GamepadButton::DPadUp, GamepadAxis::LeftX, 0.5f, true, 0});
-    profile.actions.bind(Action::MoveDown, {BindingType::GamepadButton, Key::Unknown, MouseButton::Left, GamepadButton::DPadDown, GamepadAxis::LeftX, 0.5f, true, 0});
-    profile.actions.bind(Action::MoveLeft, {BindingType::GamepadButton, Key::Unknown, MouseButton::Left, GamepadButton::DPadLeft, GamepadAxis::LeftX, 0.5f, true, 0});
-    profile.actions.bind(Action::MoveRight, {BindingType::GamepadButton, Key::Unknown, MouseButton::Left, GamepadButton::DPadRight, GamepadAxis::LeftX, 0.5f, true, 0});
+    profile.gamepadDeadZone = 0.15f;
     profile.actions.bind(Action::MoveLeft, {BindingType::GamepadAxis, Key::Unknown, MouseButton::Left, GamepadButton::A, GamepadAxis::LeftX, 0.25f, false, 0});
     profile.actions.bind(Action::MoveRight, {BindingType::GamepadAxis, Key::Unknown, MouseButton::Left, GamepadButton::A, GamepadAxis::LeftX, 0.25f, true, 0});
     profile.actions.bind(Action::MoveUp, {BindingType::GamepadAxis, Key::Unknown, MouseButton::Left, GamepadButton::A, GamepadAxis::LeftY, 0.25f, false, 0});
     profile.actions.bind(Action::MoveDown, {BindingType::GamepadAxis, Key::Unknown, MouseButton::Left, GamepadButton::A, GamepadAxis::LeftY, 0.25f, true, 0});
-    profile.gamepadDeadZone = 0.15f;
-    profile.gamepadSensitivity = 1.0f;
     return profile;
 }
 
@@ -125,7 +114,6 @@ InputProfile makeArcadeProfile() {
     profile.actions.clear(Action::Fire);
     profile.actions.bind(Action::Fire, {BindingType::Key, Key::Z});
     profile.actions.bind(Action::Fire, {BindingType::Key, Key::X});
-    profile.actions.bind(Action::Start, {BindingType::Key, Key::Enter});
     return profile;
 }
 
@@ -170,13 +158,11 @@ InputConfigResult loadInputProfileText(InputProfile& profile, const std::string&
             unsigned v{};
             if (!parseUnsigned(value, v)) return {false, "Invalid schema value."};
             profile.schemaVersion = static_cast<int>(v);
-        } else if (key == "name") {
-            profile.name = value;
-        } else if (key == "mouse_sensitivity") {
+        } else if (key == "name") profile.name = value;
+        else if (key == "mouse_sensitivity") {
             if (!parseFloat(value, profile.mouseSensitivity)) return {false, "Invalid mouse sensitivity."};
-        } else if (key == "invert_mouse_y") {
-            profile.invertMouseY = value == "1" || value == "true";
-        } else if (key == "gamepad_dead_zone") {
+        } else if (key == "invert_mouse_y") profile.invertMouseY = value == "1" || value == "true";
+        else if (key == "gamepad_dead_zone") {
             if (!parseFloat(value, profile.gamepadDeadZone)) return {false, "Invalid gamepad dead zone."};
         } else if (key == "gamepad_trigger_threshold") {
             if (!parseFloat(value, profile.gamepadTriggerThreshold)) return {false, "Invalid trigger threshold."};
@@ -184,7 +170,7 @@ InputConfigResult loadInputProfileText(InputProfile& profile, const std::string&
             if (!parseFloat(value, profile.gamepadSensitivity)) return {false, "Invalid gamepad sensitivity."};
         } else if (key == "gamepad_index") {
             unsigned v{};
-            if (!parseUnsigned(value, v)) return {false, "Invalid gamepad index."};
+            if (!parseUnsigned(value, v) || v >= 4) return {false, "Gamepad index is out of range."};
             profile.gamepadIndex = v;
         } else if (key == "binding") {
             const auto fields = split(value, '|');
