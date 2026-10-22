@@ -1,0 +1,14 @@
+{
+  "format": "N8CR-PROJECT",
+  "version": 1,
+  "id": "cell8-pong",
+  "title": "NEX8 CELL8 Pong",
+  "hardware_profile": "CELL8-REV-A",
+  "mapper": 0,
+  "entry": "asm/main.asm",
+  "host_cpp23": ["cpp/PongGame.hpp", "cpp/PongGame.cpp"],
+  "script_rules": ["lua/game.lua"],
+  "graphics": ["assets/tiles.chr8"],
+  "output": "build/cell8-pong.n8c",
+  "notes": "Assembly is the planned cartridge-native language. C++23 and Lua files are host-side simulation/authoring layers. CELL8 ISA and GPU implementation are still experimental."
+}

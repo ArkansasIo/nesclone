@@ -1,17 +1,21 @@
-# NES homebrew SDK
+# NEX8 SDK
 
-This starter SDK targets the 8-bit NES CPU with ca65/ld65-compatible assembly. C++23 runs the host emulator and tools; it does not compile directly to cartridge machine code.
+The SDK contains two explicitly separate targets:
 
-Tools:
-- ca65 and ld65 from cc65 for assembly.
-- `nesrom info <file.nes>` to inspect cartridge metadata.
-- Planned native nesasm, ROM packer, CHR converter, nametable/palette tools.
+- **CELL8 / N8CR:** proposed custom NEX8 8-bit hardware profile. Its assembly syntax, ISA, and cartridge structure are experimental; the dedicated assembler and integrated emulator are not complete.
+- **6502 / iNES:** compatibility target for the existing emulator scaffold. Use ca65/ld65 for assembly examples where appropriate.
 
-Layout:
-- include/nes.inc: PPU/APU/controller register constants.
-- include/controller.inc: button masks.
-- include/macros.inc: assembly macros.
-- linker/nrom128.cfg: starter linker layout.
-- examples/hello/main.s: reset/vector source.
+## Tools
 
-The linker configuration is not a complete ROM packer. A finished toolchain must join the 16-byte header, PRG and CHR in correct iNES order and test the resulting ROM.
+- `nesrom info <file.nes>` — inspect an iNES compatibility image.
+- `cell8rom <file.n8c>` — inspect an N8CR CELL8 cartridge.
+- `chrtool`, `namtool`, `inesutil`, `nesdis` — current diagnostic tools for the compatibility path.
+- `nex8asm` — planned assembler for CELL8 source.
+- `nex8link` — planned linker/section layout.
+- `nex8pack` — planned N8CR packager.
+
+## Language boundary
+
+C++23 is used for host tools, engine and tests. Lua/NESLogic is an authoring/host-side scripting layer. Native cartridge software must be compiled into target machine code.
+
+See `docs/CELL8_ARCHITECTURE.md`, `docs/CELL8_ISA.md` and `docs/CELL8_ASSEMBLY.md`.
