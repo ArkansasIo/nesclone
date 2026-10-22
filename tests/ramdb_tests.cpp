@@ -1,3 +1,4 @@
+#include "nex8/ramdb/ram_binary.hpp"
 #include "nex8/ramdb/ram_database.hpp"
 #include "nex8/ramdb/ram_memory.hpp"
 #include "nex8/ramdb/ram_sql.hpp"
@@ -36,6 +37,28 @@ int main() {
     assert(std::get<std::uint16_t>(players->find(0)->values[2]) == 600);
     assert(players->erase(0));
     assert(players->find(0) == nullptr);
+
+    RowId sparseId = 0;
+    assert(players->insert(Row{std::uint8_t{2}, std::uint8_t{20}, std::uint16_t{900}, std::uint16_t{40000}}, &sparseId, &error));
+    assert(sparseId == 0);
+    RowId secondId = 0;
+    assert(players->insert(Row{std::uint8_t{3}, std::uint8_t{30}, std::uint16_t{1000}, std::uint16_t{50000}}, &secondId, &error));
+    assert(secondId == 1);
+    assert(players->erase(sparseId));
+    RowId thirdId = 0;
+    assert(players->insert(Row{std::uint8_t{4}, std::uint8_t{40}, std::uint16_t{1100}, std::uint16_t{60000}}, &thirdId, &error));
+    assert(thirdId == 0);
+
+    const auto image = serialize(db, &error);
+    assert(!image.bytes.empty());
+    Database restored;
+    assert(deserialize(image.bytes, restored, &error));
+    const auto* restoredPlayers = restored.table("PLAYERS");
+    assert(restoredPlayers != nullptr);
+    assert(restoredPlayers->find(0) != nullptr);
+    assert(restoredPlayers->find(1) != nullptr);
+    assert(restoredPlayers->find(1)->values[0] == Value{std::uint8_t{3}});
+    assert(restoredPlayers->find(0)->values[0] == Value{std::uint8_t{4}});
 
     Database sqlDb;
     auto result = execute(sqlDb, "CREATE TABLE PLAYERS COLUMN ID UINT8 COLUMN LEVEL UINT8 COLUMN HP UINT16 COLUMN XP UINT16 ENDTABLE");
