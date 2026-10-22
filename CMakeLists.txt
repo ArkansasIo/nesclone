@@ -27,7 +27,9 @@ add_executable(nesclone src/main.cpp)
 target_link_libraries(nesclone PRIVATE nes_core)
 
 if(NEX8_BUILD_ENGINE)
-    add_library(nex8_engine src/engine/game_engine.cpp src/studio/project.cpp src/input/input_system.cpp)
+    add_library(nex8_engine
+        src/engine/game_engine.cpp src/studio/project.cpp
+        src/input/input_system.cpp src/input/input_actions.cpp)
     target_include_directories(nex8_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(MSVC)
         target_compile_options(nex8_engine PRIVATE /W4 /permissive-)
