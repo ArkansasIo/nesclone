@@ -1,0 +1,21 @@
+{
+  "name": "NESClone XMB",
+  "version": 1,
+  "colors": {
+    "background": "#07111f",
+    "backgroundElevated": "#0c1f35",
+    "surface": "#102c49",
+    "surfaceSelected": "#1b486b",
+    "text": "#f1f7ff",
+    "textMuted": "#a9bfd5",
+    "accent": "#4bd4ff",
+    "warning": "#ffbd59",
+    "danger": "#ff657a"
+  },
+  "navigation": {
+    "categories": "horizontal",
+    "items": "vertical",
+    "keys": ["Left", "Right", "Up", "Down", "Enter", "Escape"],
+    "reducedMotionSupported": true
+  }
+}
