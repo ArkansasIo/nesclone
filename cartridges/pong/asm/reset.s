@@ -1,44 +1,55 @@
+; NESClone Pong reset/startup. ca65 source.
+; Actual ROM building requires a matching ld65 configuration and pong.chr asset.
 .setcpu "6502"
 
+.export reset, nmi, irq
+.import update_game
+
 .segment "HEADER"
-.byte $4e, $45, $53, $1a
-.byte 2
-.byte 1
-.byte $00
-.byte $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $4E, $45, $53, $1A
+    .byte 2                    ; 32 KiB PRG-ROM
+    .byte 1                    ; 8 KiB CHR-ROM
+    .byte $00, $00              ; Mapper 0, horizontal mirroring
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+
+.segment "ZEROPAGE"
+frame_counter: .res 1
 
 .segment "CODE"
-
 reset:
     sei
     cld
     ldx #$40
     stx $4017
-    ldx #$ff
+    ldx #$FF
     txs
     inx
     stx $2000
     stx $2001
     stx $4010
 
-wait_vblank:
+@wait_vblank:
     bit $2002
-    bpl wait_vblank
+    bpl @wait_vblank
 
-main_loop:
+    lda #$00
+    sta frame_counter
+
+@main_loop:
+    bit $2002
+    bpl @main_loop
     jsr update_game
-    jsr wait_frame
-    jmp main_loop
+    inc frame_counter
+    jmp @main_loop
 
-wait_frame:
-    bit $2002
-    bpl wait_frame
-    rts
+nmi:
+    rti
 
-.include "game.s"
+irq:
+    rti
 
 .segment "VECTORS"
-.word reset
-.word reset
-.word reset
+    .addr nmi, reset, irq
+
+.segment "CHR"
+    .incbin "assets/pong.chr"
