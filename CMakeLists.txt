@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(NESCLONE_BUILD_TESTS "Build unit tests" ON)
 option(NESCLONE_BUILD_SCRIPTING "Build NESLogic scripting prototype" ON)
-option(NESCLONE_BUILD_TOOLS "Build ROM metadata tool" ON)
+option(NESCLONE_BUILD_TOOLS "Build ROM and asset diagnostic tools" ON)
 
 add_library(nes_core
     src/apu/apu.cpp
@@ -57,6 +57,13 @@ endif()
 if(NESCLONE_BUILD_TOOLS)
     add_executable(nesrom tools/romtool/main.cpp)
     target_link_libraries(nesrom PRIVATE nes_core)
+    add_executable(inesutil tools/inesutil/main.cpp)
+    target_link_libraries(inesutil PRIVATE nes_core)
+    add_executable(chrtool tools/chrtool/main.cpp)
+    target_link_libraries(chrtool PRIVATE nes_core)
+    add_executable(namtool tools/namtool/main.cpp)
+    add_executable(nesdis tools/nesdis/main.cpp)
+    target_link_libraries(nesdis PRIVATE nes_core)
 endif()
 
 if(NESCLONE_BUILD_TESTS)
