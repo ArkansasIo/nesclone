@@ -26,7 +26,7 @@ ValidationReport validateProject(const Project& project) {
             project.root});
     }
     if (project.cartridge.assemblyEntry.empty()) error("CART001", "Assembly entry path is required.");
-    if (project.cartridge.outputRom.empty()) error("CART002", "Cartridge output path is required.");
+    if (project.cartridge.outputRom.empty()) error("CART002", "Cartridge output path must be configured.");
 
     for (const auto& file : project.files) {
         if (file.relativePath.empty() || file.relativePath.is_absolute()) {
@@ -54,14 +54,15 @@ std::optional<Project> loadProjectManifest(const std::filesystem::path& path, st
     std::ostringstream stream;
     stream << file.rdbuf();
     const std::string source = stream.str();
+
     const auto stringField = [&](const std::string& key) -> std::optional<std::string> {
-        const std::regex pattern("\\"" + key + "\\"\\s*:\\s*\\"([^\\"]*)\\"");
+        const std::regex pattern("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"");
         std::smatch match;
         if (!std::regex_search(source, match, pattern)) return std::nullopt;
         return match[1].str();
     };
     const auto intField = [&](const std::string& key) -> std::optional<int> {
-        const std::regex pattern("\\"" + key + "\\"\\s*:\\s*(-?[0-9]+)");
+        const std::regex pattern("\"" + key + "\"\\s*:\\s*(-?[0-9]+)");
         std::smatch match;
         if (!std::regex_search(source, match, pattern)) return std::nullopt;
         try { return std::stoi(match[1].str()); } catch (...) { return std::nullopt; }
