@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(NESClone VERSION 0.2.0 LANGUAGES CXX)
+project(NESClone VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(NESCLONE_BUILD_TESTS "Build unit tests" ON)
 option(NESCLONE_BUILD_SCRIPTING "Build NESLogic scripting prototype" ON)
+option(NESCLONE_BUILD_TOOLS "Build ROM metadata tool" ON)
 
 add_library(nes_core
     src/apu/apu.cpp
@@ -17,6 +18,9 @@ add_library(nes_core
     src/debugger/debugger.cpp
     src/debugger/disassembler.cpp
     src/frontend/input.cpp
+    src/frontend/library_service.cpp
+    src/frontend/settings_store.cpp
+    src/frontend/xmb_model.cpp
     src/nes/bus.cpp
     src/nes/nes.cpp
     src/ppu/ppu.cpp
@@ -50,9 +54,17 @@ if(NESCLONE_BUILD_SCRIPTING)
     target_link_libraries(neslogic PRIVATE neslogic_runtime)
 endif()
 
+if(NESCLONE_BUILD_TOOLS)
+    add_executable(nesrom tools/romtool/main.cpp)
+    target_link_libraries(nesrom PRIVATE nes_core)
+endif()
+
 if(NESCLONE_BUILD_TESTS)
     enable_testing()
     add_executable(nes_core_tests tests/test_main.cpp)
     target_link_libraries(nes_core_tests PRIVATE nes_core)
     add_test(NAME nes_core_tests COMMAND nes_core_tests)
+    add_executable(nes_frontend_tests tests/frontend_tests.cpp)
+    target_link_libraries(nes_frontend_tests PRIVATE nes_core)
+    add_test(NAME nes_frontend_tests COMMAND nes_frontend_tests)
 endif()
