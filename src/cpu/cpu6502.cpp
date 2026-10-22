@@ -4,7 +4,7 @@
 namespace nes {
 namespace {
 constexpr u8 CARRY = 0x01, ZERO = 0x02, IRQ_DISABLE = 0x04, DECIMAL = 0x08;
-constexpr u8 BREAK_FLAG = 0x10, UNUSED = 0x20, OVERFLOW = 0x40, NEGATIVE = 0x80;
+constexpr u8 BREAK_FLAG = 0x10, UNUSED = 0x20, OVERFLOW = 0x40, NEG_FLAG = 0x80;
 }
 Cpu6502::Cpu6502(Bus& bus) : bus_(bus) {}
 u8 Cpu6502::read(u16 a) { return bus_.read(a); }
@@ -15,7 +15,7 @@ void Cpu6502::push(u8 value) { write(static_cast<u16>(0x0100u | r_.sp), value); 
 u8 Cpu6502::pop() { ++r_.sp; return read(static_cast<u16>(0x0100u | r_.sp)); }
 bool Cpu6502::flag(u8 mask) const { return (r_.p & mask) != 0; }
 void Cpu6502::setFlag(u8 mask, bool value) { r_.p = value ? static_cast<u8>(r_.p | mask) : static_cast<u8>(r_.p & static_cast<u8>(~mask)); r_.p |= UNUSED; }
-void Cpu6502::setZN(u8 v) { setFlag(ZERO, v == 0); setFlag(NEGATIVE, (v & 0x80) != 0); }
+void Cpu6502::setZN(u8 v) { setFlag(ZERO, v == 0); setFlag(NEG_FLAG, (v & 0x80) != 0); }
 void Cpu6502::reset() {
     r_ = {}; r_.sp = 0xFD; r_.p = static_cast<u8>(IRQ_DISABLE | UNUSED);
     halted_ = false; remainingCycles_ = 7; cycles_ = 0;
@@ -149,8 +149,8 @@ void Cpu6502::execute(u8 op) {
     case 0x08: push(static_cast<u8>(r_.p|BREAK_FLAG|UNUSED)); setCycles(3); break;
     case 0x28: r_.p=static_cast<u8>((pop()|UNUSED)&static_cast<u8>(~BREAK_FLAG)); setCycles(4); break;
 
-    case 0x10: branch(!flag(NEGATIVE)); break;
-    case 0x30: branch(flag(NEGATIVE)); break;
+    case 0x10: branch(!flag(NEG_FLAG)); break;
+    case 0x30: branch(flag(NEG_FLAG)); break;
     case 0x50: branch(!flag(OVERFLOW)); break;
     case 0x70: branch(flag(OVERFLOW)); break;
     case 0x90: branch(!flag(CARRY)); break;
