@@ -27,7 +27,7 @@ add_executable(nesclone src/main.cpp)
 target_link_libraries(nesclone PRIVATE nes_core)
 
 if(NEX8_BUILD_ENGINE)
-    add_library(nex8_engine src/engine/game_engine.cpp src/studio/project.cpp)
+    add_library(nex8_engine src/engine/game_engine.cpp src/studio/project.cpp src/input/input_system.cpp)
     target_include_directories(nex8_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(MSVC)
         target_compile_options(nex8_engine PRIVATE /W4 /permissive-)
@@ -38,11 +38,8 @@ endif()
 
 if(NEX8_BUILD_CELL8)
     add_library(cell8_model
-        src/cell8/cell8_cpu.cpp
-        src/cell8/cell8_gpu.cpp
-        src/cell8/cell8_spu.cpp
-        src/cell8/dma_controller.cpp
-        src/cell8/cartridge_image.cpp)
+        src/cell8/cell8_cpu.cpp src/cell8/cell8_gpu.cpp src/cell8/cell8_spu.cpp
+        src/cell8/dma_controller.cpp src/cell8/cartridge_image.cpp)
     target_include_directories(cell8_model PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(NESCLONE_BUILD_TOOLS)
         add_executable(cell8rom tools/cell8rom/main.cpp)
@@ -101,6 +98,9 @@ if(NESCLONE_BUILD_TESTS)
         add_executable(nex8_object_tests tests/engine_objects_tests.cpp)
         target_link_libraries(nex8_object_tests PRIVATE nex8_engine)
         add_test(NAME nex8_object_tests COMMAND nex8_object_tests)
+        add_executable(nex8_input_tests tests/input_tests.cpp)
+        target_link_libraries(nex8_input_tests PRIVATE nex8_engine)
+        add_test(NAME nex8_input_tests COMMAND nex8_input_tests)
     endif()
     if(NEX8_BUILD_CELL8)
         add_executable(cell8_tests tests/cell8_tests.cpp)
