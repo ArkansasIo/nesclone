@@ -1,0 +1,15 @@
+-- NESLogic design example; parser/runtime support is currently under construction.
+local score = 0
+
+function addPoints(value)
+    score = score + value
+    return score
+end
+
+if score >= 10 then
+    print("high score")
+elseif score > 0 then
+    print("score started")
+else
+    print("zero")
+end
