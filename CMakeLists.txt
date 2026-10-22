@@ -1,51 +1,30 @@
 cmake_minimum_required(VERSION 3.25)
-project(NESClone VERSION 0.4.1 LANGUAGES CXX)
-
+project(NESClone VERSION 0.5.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 option(NESCLONE_BUILD_TESTS "Build unit tests" ON)
 option(NESCLONE_BUILD_SCRIPTING "Build NESLogic scripting prototype" ON)
 option(NESCLONE_BUILD_TOOLS "Build ROM and asset diagnostic tools" ON)
 
 add_library(nes_core
-    src/apu/apu.cpp
-    src/cartridge/ines.cpp
-    src/cartridge/mapper_factory.cpp
-    src/cartridge/nrom.cpp
-    src/controller/controller.cpp
-    src/cpu/cpu6502.cpp
-    src/debugger/debugger.cpp
-    src/debugger/disassembler.cpp
-    src/frontend/input.cpp
-    src/frontend/library_service.cpp
-    src/frontend/settings_store.cpp
-    src/frontend/xmb_model.cpp
-    src/nes/bus.cpp
-    src/nes/nes.cpp
-    src/ppu/ppu.cpp
-    src/video/framebuffer.cpp
-)
+    src/apu/apu.cpp src/cartridge/ines.cpp src/cartridge/mapper_factory.cpp src/cartridge/nrom.cpp
+    src/controller/controller.cpp src/cpu/cpu6502.cpp src/debugger/debugger.cpp src/debugger/disassembler.cpp
+    src/frontend/input.cpp src/frontend/library_service.cpp src/frontend/settings_store.cpp src/frontend/xmb_model.cpp
+    src/nes/bus.cpp src/nes/nes.cpp src/ppu/ppu.cpp src/video/framebuffer.cpp)
 target_include_directories(nes_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 if(MSVC)
     target_compile_options(nes_core PRIVATE /W4 /permissive-)
 else()
     target_compile_options(nes_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
 endif()
-
 add_executable(nesclone src/main.cpp)
 target_link_libraries(nesclone PRIVATE nes_core)
 
 if(NESCLONE_BUILD_SCRIPTING)
     add_library(neslogic_runtime
-        src/neslogic/value.cpp
-        src/neslogic/lexer.cpp
-        src/neslogic/parser.cpp
-        src/neslogic/runtime.cpp
-        src/neslogic/interpreter.cpp
-    )
+        src/neslogic/value.cpp src/neslogic/lexer.cpp src/neslogic/parser.cpp src/neslogic/runtime.cpp
+        src/neslogic/interpreter.cpp src/neslogic/logic.cpp)
     target_include_directories(neslogic_runtime PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     if(MSVC)
         target_compile_options(neslogic_runtime PRIVATE /W4 /permissive-)
@@ -76,4 +55,7 @@ if(NESCLONE_BUILD_TESTS)
     add_executable(nes_frontend_tests tests/frontend_tests.cpp)
     target_link_libraries(nes_frontend_tests PRIVATE nes_core)
     add_test(NAME nes_frontend_tests COMMAND nes_frontend_tests)
+    add_executable(neslogic_tests tests/neslogic_tests.cpp)
+    target_link_libraries(neslogic_tests PRIVATE neslogic_runtime)
+    add_test(NAME neslogic_tests COMMAND neslogic_tests)
 endif()
