@@ -11,83 +11,27 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#top">NEX<span>8</span></a>
-    <nav>
-      <a href="#console">Console</a>
-      <a href="#games">Games</a>
-      <a href="#sdk">SDK</a>
-      <a href="#downloads">Build</a>
-      <a href="https://github.com/ArkansasIo/nesclone">GitHub</a>
+    <nav aria-label="Main navigation">
+      <a href="#console">Console</a><a href="#games">Games</a><a href="#studio">Studio</a><a href="#sdk">SDK</a><a href="#downloads">Build</a><a href="https://github.com/ArkansasIo/nesclone">GitHub</a>
     </nav>
   </header>
-
   <main id="top">
     <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">NEXUS EIGHT · CELL8 REV-A</p>
-        <h1>An 8-bit console built for games, tools and experiments.</h1>
-        <p class="lede">NEX8 is the next-generation direction of NESClone: a C++23 host runtime, native CELL8 cartridge format, emulator, developer tools, RAMSQL dataset layer and an expanding library of games.</p>
-        <div class="actions">
-          <a class="button primary" href="#games">Explore games</a>
-          <a class="button" href="https://github.com/ArkansasIo/nesclone/tree/nex8-rebrand">View source</a>
-        </div>
-      </div>
-      <div class="console-card" aria-label="NEX8 console profile">
-        <div class="screen"><div class="scanlines"></div><span>NEX8</span><small>NEXUS EIGHT</small></div>
-        <div class="console-meta"><b>CELL8 REV-A</b><span>8-bit / 16-bit address bus</span></div>
-        <div class="leds"><i></i><i></i><i></i></div>
-      </div>
+      <div class="hero-copy"><p class="eyebrow">NEXUS EIGHT · CELL8 REV-A</p><h1>An 8-bit console built for games, tools and experiments.</h1><p class="lede">NEX8 is the next-generation direction of NESClone: a C++23 host runtime, native CELL8 cartridge format, emulator, developer tools, RAMSQL dataset layer and an expanding library of games.</p><div class="actions"><a class="button primary" href="#games">Explore games</a><a class="button" href="https://github.com/ArkansasIo/nesclone/tree/main">View source</a></div></div>
+      <div class="console-card" aria-label="NEX8 console profile"><div class="screen"><div class="scanlines"></div><span>NEX8</span><small>NEXUS EIGHT</small></div><div class="console-meta"><b>CELL8 REV-A</b><span>8-bit / 16-bit address bus</span></div><div class="leds"><i></i><i></i><i></i></div></div>
     </section>
-
-    <section id="console" class="section">
-      <div class="section-head"><p class="eyebrow">SYSTEM</p><h2>The NEX8 console profile</h2></div>
-      <div class="grid specs">
-        <article><strong>8-bit PPE</strong><span>General-purpose CELL8 processor with 16-bit addressing and an experimental 8–16 MHz target.</span></article>
-        <article><strong>Specialized SPUs</strong><span>Parallel 8-bit workers for audio, sprites, physics, AI, collision and other game workloads.</span></article>
-        <article><strong>Tile/Sprite GPU</strong><span>Indexed graphics profile targeting a 256×240 display, tile maps, sprites, scrolling and palette RAM.</span></article>
-        <article><strong>Cartridge System</strong><span>N8CR native cartridges separate program, graphics, audio and data sections from legacy .nes images.</span></article>
-        <article><strong>RAMSQL</strong><span>RAM-resident relational datasets with SQL-like operations and the binary N8DB format.</span></article>
-        <article><strong>Developer Studio</strong><span>Tooling roadmap includes assembler, linker, emulator, debugger, graphics, audio and project studio tools.</span></article>
-      </div>
-    </section>
-
-    <section id="games" class="section dark-panel">
-      <div class="section-head"><p class="eyebrow">GAME LIBRARY</p><h2>Games and prototypes</h2><p>Each title can grow from a small test cartridge into a complete NEX8 game.</p></div>
-      <div class="grid games">
-        <article class="game-card"><div class="pixel-icon">PX</div><div><h3>NEX8 Pong</h3><p>Classic paddle-and-ball starter game for validating input, rendering, collision and the object-oriented game layer.</p><span class="tag">STARTER</span></div></article>
-        <article class="game-card"><div class="pixel-icon">AR</div><div><h3>Arcade Lab</h3><p>A home for small arcade experiments using the NEX8 action map, keyboard, mouse and gamepad input stack.</p><span class="tag">PROTOTYPE</span></div></article>
-        <article class="game-card"><div class="pixel-icon">RPG</div><div><h3>NEX8 RPG</h3><p>Planned RPG framework using scenes, game objects, rules, data tables, cartridge data and RAMSQL.</p><span class="tag">ROADMAP</span></div></article>
-        <article class="game-card"><div class="pixel-icon">8X</div><div><h3>Game Studio Samples</h3><p>Technical samples for sprites, tile maps, audio, controller input, scripting and cartridge packaging.</p><span class="tag">SDK</span></div></article>
-      </div>
-    </section>
-
-    <section id="sdk" class="section">
-      <div class="section-head"><p class="eyebrow">DEVELOPMENT KIT</p><h2>Build games for the platform</h2></div>
-      <div class="tool-grid">
-        <div><code>nex8asm</code><p>Assemble native CELL8 source.</p></div>
-        <div><code>nex8link</code><p>Link object files and cartridge programs.</p></div>
-        <div><code>nex8pack</code><p>Package NEX8 cartridge assets.</p></div>
-        <div><code>nex8emu</code><p>Run the console profile on the host.</p></div>
-        <div><code>nex8dbg</code><p>Inspect CPU, memory, cartridge and game state.</p></div>
-        <div><code>nex8studio</code><p>Planned integrated game-development workspace.</p></div>
-      </div>
-    </section>
-
-    <section id="downloads" class="section build-section">
-      <div class="section-head"><p class="eyebrow">GET STARTED</p><h2>Build the console and games</h2></div>
-      <div class="build-box">
-        <p>The repository currently targets C++23/CMake and includes Windows build scripts for the NEX8 engine, CELL8 model, RAMDB, legacy NES runtime and tests.</p>
-        <div class="command-list">
-          <code>scripts\configure.bat</code>
-          <code>scripts\build.bat</code>
-          <code>scripts\test.bat</code>
-          <code>scripts\run_nesclone.bat</code>
-        </div>
-        <a class="button primary" href="https://github.com/ArkansasIo/nesclone/tree/nex8-rebrand/scripts">Build scripts on GitHub</a>
-      </div>
-    </section>
+    <section id="console" class="section"><div class="section-head"><p class="eyebrow">SYSTEM</p><h2>The NEX8 console profile</h2></div><div class="grid specs">
+      <article><strong>8-bit PPE</strong><span>General-purpose CELL8 processor with 16-bit addressing and an experimental 8–16 MHz target.</span></article><article><strong>Specialized SPUs</strong><span>Parallel 8-bit workers for audio, sprites, physics, AI, collision and other game workloads.</span></article><article><strong>Tile/Sprite GPU</strong><span>Indexed graphics profile targeting a 256×240 display, tile maps, sprites, scrolling and palette RAM.</span></article><article><strong>Cartridge System</strong><span>N8CR native cartridges separate program, graphics, audio and data sections from legacy .nes images.</span></article><article><strong>RAMSQL</strong><span>RAM-resident relational datasets with SQL-like operations and the binary N8DB format.</span></article><article><strong>Developer Studio</strong><span>Assembler, linker, emulator, debugger, graphics, audio and project-studio tooling are being built around the core runtime.</span></article>
+    </div></section>
+    <section id="games" class="section dark-panel"><div class="section-head"><p class="eyebrow">GAME LIBRARY</p><h2>Games and prototypes</h2><p>Technical cartridges and playable projects organized for the NEX8 development platform.</p></div><div class="grid games">
+      <article class="game-card"><div class="pixel-icon">PX</div><div><h3>NEX8 Pong</h3><p>Classic paddle-and-ball starter game for validating input, rendering, collision and the object-oriented game layer.</p><span class="tag">STARTER</span></div></article><article class="game-card"><div class="pixel-icon">AR</div><div><h3>Arcade Lab</h3><p>Small arcade experiments using the NEX8 action map, keyboard, mouse and gamepad input stack.</p><span class="tag">PROTOTYPE</span></div></article><article class="game-card"><div class="pixel-icon">RPG</div><div><h3>NEX8 RPG</h3><p>Planned RPG framework using scenes, game objects, rules, data tables, cartridge data and RAMSQL.</p><span class="tag">ROADMAP</span></div></article><article class="game-card"><div class="pixel-icon">8X</div><div><h3>Game Studio Samples</h3><p>Technical samples for sprites, tile maps, audio, controller input, scripting and cartridge packaging.</p><span class="tag">SDK</span></div></article>
+    </div></section>
+    <section id="studio" class="section"><div class="section-head"><p class="eyebrow">NEX8 STUDIO</p><h2>Console-style development dashboard</h2><p>Use the project website as the front door for the emulator, games, SDK and development workflow.</p></div><div class="dashboard-grid">
+      <button class="dash-card" data-panel="library"><strong>GAME LIBRARY</strong><span>Browse NEX8 projects and prototypes.</span></button><button class="dash-card" data-panel="build"><strong>BUILD CENTER</strong><span>Configure, build and test the C++23 runtime.</span></button><button class="dash-card" data-panel="cartridge"><strong>CARTRIDGE LAB</strong><span>Inspect N8CR/N8DB assets and native CELL8 programs.</span></button><button class="dash-card" data-panel="input"><strong>INPUT CONFIG</strong><span>Keyboard, mouse and gamepad action profiles.</span></button>
+    </div><div id="studio-panel" class="studio-panel" aria-live="polite"><strong>SELECT A STUDIO PANEL</strong><span>Choose a dashboard card to preview its workflow.</span></div></section>
+    <section id="sdk" class="section"><div class="section-head"><p class="eyebrow">DEVELOPMENT KIT</p><h2>Build games for the platform</h2></div><div class="tool-grid"><div><code>nex8asm</code><p>Assemble native CELL8 source.</p></div><div><code>nex8link</code><p>Link object files and cartridge programs.</p></div><div><code>nex8pack</code><p>Package NEX8 cartridge assets.</p></div><div><code>nex8emu</code><p>Run the console profile on the host.</p></div><div><code>nex8dbg</code><p>Inspect CPU, memory, cartridge and game state.</p></div><div><code>nex8studio</code><p>Integrated development workspace roadmap.</p></div></div></section>
+    <section id="downloads" class="section build-section"><div class="section-head"><p class="eyebrow">GET STARTED</p><h2>Build the console and games</h2></div><div class="build-box"><p>The repository targets C++23/CMake and includes Windows build scripts for the NEX8 engine, CELL8 model, RAMDB, legacy NES runtime and tests.</p><div class="command-list"><code>scripts\configure.bat</code><code>scripts\build.bat</code><code>scripts\test.bat</code><code>scripts\run_nesclone.bat</code></div><div class="actions"><a class="button primary" href="https://github.com/ArkansasIo/nesclone/tree/main/scripts">Build scripts</a><a class="button" href="https://github.com/ArkansasIo/nesclone/actions">GitHub Actions</a></div></div></section>
   </main>
-
-  <footer><span>NEX8 · Nexus Eight</span><span>ArkansasIo · Open development</span></footer>
-  <script src="app.js"></script>
+  <footer><span>NEX8 · Nexus Eight</span><span>ArkansasIo · Open development</span></footer><script src="app.js"></script>
 </body>
 </html>
