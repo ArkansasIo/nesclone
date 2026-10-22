@@ -12,6 +12,7 @@ option(NESCLONE_BUILD_TOOLS "Build ROM and asset diagnostic tools" ON)
 add_library(nes_core
     src/apu/apu.cpp
     src/cartridge/ines.cpp
+    src/cartridge/mapper_factory.cpp
     src/cartridge/nrom.cpp
     src/controller/controller.cpp
     src/cpu/cpu6502.cpp
@@ -39,6 +40,7 @@ target_link_libraries(nesclone PRIVATE nes_core)
 
 if(NESCLONE_BUILD_SCRIPTING)
     add_library(neslogic_runtime
+        src/neslogic/value.cpp
         src/neslogic/lexer.cpp
         src/neslogic/parser.cpp
         src/neslogic/runtime.cpp
