@@ -9,6 +9,7 @@ option(NESCLONE_BUILD_SCRIPTING "Build NESLogic scripting prototype" ON)
 option(NESCLONE_BUILD_TOOLS "Build ROM and asset diagnostic tools" ON)
 option(NEX8_BUILD_ENGINE "Build NEX8 host-side game engine and Studio project services" ON)
 option(NEX8_BUILD_CELL8 "Build experimental CELL8 hardware model" ON)
+option(NEX8_BUILD_RAMDB "Build NEX8 RAM-resident relational dataset runtime" ON)
 
 add_library(nes_core
     src/apu/apu.cpp src/cartridge/ines.cpp src/cartridge/mapper_factory.cpp src/cartridge/nrom.cpp
@@ -35,6 +36,18 @@ if(NEX8_BUILD_ENGINE)
         target_compile_options(nex8_engine PRIVATE /W4 /permissive-)
     else()
         target_compile_options(nex8_engine PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
+    endif()
+endif()
+
+if(NEX8_BUILD_RAMDB)
+    add_library(nex8_ramdb
+        src/ramdb/ram_value.cpp src/ramdb/ram_schema.cpp src/ramdb/ram_table.cpp
+        src/ramdb/ram_database.cpp src/ramdb/ram_sql.cpp)
+    target_include_directories(nex8_ramdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    if(MSVC)
+        target_compile_options(nex8_ramdb PRIVATE /W4 /permissive-)
+    else()
+        target_compile_options(nex8_ramdb PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
     endif()
 endif()
 
@@ -110,9 +123,15 @@ if(NESCLONE_BUILD_TESTS)
         target_link_libraries(nex8_input_profile_tests PRIVATE nex8_engine)
         add_test(NAME nex8_input_profile_tests COMMAND nex8_input_profile_tests)
     endif()
+    if(NEX8_BUILD_RAMDB)
+        add_executable(nex8_ramdb_tests tests/ramdb_tests.cpp)
+        target_link_libraries(nex8_ramdb_tests PRIVATE nex8_ramdb)
+        add_test(NAME nex8_ramdb_tests COMMAND nex8_ramdb_tests)
+    endif()
     if(NEX8_BUILD_CELL8)
         add_executable(cell8_tests tests/cell8_tests.cpp)
         target_link_libraries(cell8_tests PRIVATE cell8_model)
         add_test(NAME cell8_tests COMMAND cell8_tests)
+        
     endif()
 endif()
