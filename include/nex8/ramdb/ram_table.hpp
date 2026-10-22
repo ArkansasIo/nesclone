@@ -29,6 +29,7 @@ public:
 
     bool insert(const Row& row, RowId* assignedId = nullptr, std::string* error = nullptr);
     bool insert(const std::unordered_map<std::string, Value>& fields, RowId* assignedId = nullptr, std::string* error = nullptr);
+    bool restore(RowId id, const Row& row, std::string* error = nullptr);
     bool update(RowId id, const std::unordered_map<std::string, Value>& fields, std::string* error = nullptr);
     bool erase(RowId id);
     [[nodiscard]] const RowRecord* find(RowId id) const;
