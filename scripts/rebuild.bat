@@ -2,8 +2,14 @@
 setlocal
 cd /d "%~dp0.."
 
-call scripts\clean.bat
-if errorlevel 1 exit /b 1
+if exist build (
+    echo [NEX8] Removing existing build directory...
+    rmdir /s /q build
+    if exist build (
+        echo [NEX8] ERROR: Could not remove build directory.
+        exit /b 1
+    )
+)
 
 call scripts\configure.bat
 if errorlevel 1 exit /b 1
