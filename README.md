@@ -46,6 +46,9 @@ On Windows, executable paths are under the chosen build configuration directory.
 - `include/neslogic/`, `src/neslogic/`: scripting language foundation
 - `sdk/`: assembly includes, linker configs and examples
 - `tools/romtool/`: ROM metadata CLI
+- `tools/chrtool/`, `tools/namtool/`, `tools/nesdis/`, `tools/inesutil/`: diagnostic tooling
+- `ui/xmb/`: dashboard UI design and theme
+- `games/`: first-party homebrew project slots
 - `ui/xmb/`: dashboard design notes and theme tokens
 - `tests/`: core and frontend tests
 - `docs/CONSOLE_PRODUCT.md`: 8-bit console product scope
