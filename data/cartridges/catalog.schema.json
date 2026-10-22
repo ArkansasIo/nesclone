@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkansasio.github.io/nesclone/schemas/cartridge-catalog.schema.json",
+  "title": "NESClone Cartridge Catalog Entry",
+  "description": "Metadata for an NES cartridge or a local homebrew build. This schema does not contain or imply distribution rights for a ROM.",
+  "type": "object",
+  "required": ["id", "title", "publisher", "mapper", "genre", "compatibility", "rom_filename", "rights"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "title": {"type": "string", "minLength": 1},
+    "publisher": {"type": ["string", "null"]},
+    "year": {"type": ["integer", "null"], "minimum": 1970, "maximum": 2100},
+    "mapper": {"type": ["integer", "null"], "minimum": 0, "maximum": 4095},
+    "prg_rom_bytes": {"type": ["integer", "null"], "minimum": 0},
+    "chr_rom_bytes": {"type": ["integer", "null"], "minimum": 0},
+    "prg_ram_bytes": {"type": ["integer", "null"], "minimum": 0},
+    "region": {"enum": ["NTSC", "PAL", "multi-region", "unknown"]},
+    "genre": {"type": "string", "minLength": 1},
+    "compatibility": {"type": "string"},
+    "rom_filename": {"type": ["string", "null"]},
+    "rights": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}
