@@ -22,26 +22,32 @@ ValueType valueTypeOf(const Value& value) {
 bool valueFits(ValueType type, const Value& value) {
     return std::visit([type](const auto& item) {
         using T = std::decay_t<decltype(item)>;
-        switch (type) {
-        case ValueType::UInt8:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 255ULL;
-        case ValueType::UInt16:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0 && static_cast<unsigned long long>(item) <= 65535ULL;
-        case ValueType::UInt32:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= 0;
-        case ValueType::Int8:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= -128 && static_cast<long long>(item) <= 127;
-        case ValueType::Int16:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> && static_cast<long long>(item) >= -32768 && static_cast<long long>(item) <= 32767;
-        case ValueType::Int32:
-            return std::is_integral_v<T> && !std::is_same_v<T, bool> &&
-                   static_cast<long long>(item) >= -2147483648LL && static_cast<long long>(item) <= 2147483647LL;
-        case ValueType::Bool:
-            return std::is_same_v<T, bool>;
-        case ValueType::Text:
-            return std::is_same_v<T, std::string>;
+        if constexpr (std::is_same_v<T, bool>) {
+            return type == ValueType::Bool;
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            return type == ValueType::Text;
+        } else if constexpr (std::is_integral_v<T>) {
+            const long long asSigned = static_cast<long long>(item);
+            const unsigned long long asUnsigned = static_cast<unsigned long long>(item);
+            switch (type) {
+            case ValueType::UInt8:
+                return asSigned >= 0 && asUnsigned <= 255ULL;
+            case ValueType::UInt16:
+                return asSigned >= 0 && asUnsigned <= 65535ULL;
+            case ValueType::UInt32:
+                return asSigned >= 0;
+            case ValueType::Int8:
+                return asSigned >= -128 && asSigned <= 127;
+            case ValueType::Int16:
+                return asSigned >= -32768 && asSigned <= 32767;
+            case ValueType::Int32:
+                return asSigned >= -2147483648LL && asSigned <= 2147483647LL;
+            default:
+                return false;
+            }
+        } else {
+            return false;
         }
-        return false;
     }, value);
 }
 
@@ -63,7 +69,11 @@ bool valueEquals(const Value& lhs, const Value& rhs) {
     };
     if (!integral(lhs) || !integral(rhs)) return false;
     const auto toI64 = [](const Value& value) -> std::int64_t {
-        return std::visit([](const auto& item) -> std::int64_t { return static_cast<std::int64_t>(item); }, value);
+        return std::visit([](const auto& item) -> std::int64_t {
+            using T = std::decay_t<decltype(item)>;
+            if constexpr (std::is_integral_v<T>) return static_cast<std::int64_t>(item);
+            else return 0;
+        }, value);
     };
     return toI64(lhs) == toI64(rhs);
 }

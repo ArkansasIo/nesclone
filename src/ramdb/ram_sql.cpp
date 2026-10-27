@@ -108,7 +108,8 @@ SqlResult execute(Database& database, const std::string& statement) {
             }
             schema.columns.push_back(column);
             schema.rowSize = static_cast<std::uint16_t>(schema.rowSize + column.size);
-            ++i;
+            i += 3;
+            continue;
         }
         schema.maxRows = 256;
         std::string validation;
