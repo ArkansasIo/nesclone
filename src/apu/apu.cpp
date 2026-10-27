@@ -52,6 +52,17 @@ namespace nes
             {0, 0, 1, 1, 1, 1, 1, 1}, // 75%
         };
 
+        // NES length counter load table, indexed by the 5-bit length field.
+        constexpr u16 kLengthTable[32] = {
+            10, 254, 20, 2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26, 14,
+            12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30,
+        };
+
+        // Noise/DMC period index -> phase increment at the output sample rate.
+        constexpr u32 kNoiseRateTable[16] = {
+            4, 8, 16, 30, 60, 88, 118, 148, 188, 226, 262, 300, 344, 390, 440, 490,
+        };
+
         float noiseSample(Voice &v)
         {
             // 15-bit LFSR, feedback bit 0 xor bit 1 (short mode: bit 6).
@@ -89,8 +100,17 @@ namespace nes
         if (address <= 0x4017)
         {
             registers_[address - 0x4000] = value;
+            decodeChannelRegister(address, value);
             if (address == 0x4015)
+            {
                 status_ = static_cast<u8>(value & 0x1Fu);
+                // Channel enables: bit 0-3 = pulse1, pulse2, triangle, noise.
+                setVoiceEnabled(0, (value & 0x01u) != 0);
+                setVoiceEnabled(1, (value & 0x02u) != 0);
+                setVoiceEnabled(2, (value & 0x04u) != 0);
+                setVoiceEnabled(3, (value & 0x08u) != 0);
+                setVoiceEnabled(4, (value & 0x10u) != 0);
+            }
             return;
         }
 
@@ -101,6 +121,126 @@ namespace nes
         setVoiceEnabled(index, (value & 0x01u) != 0);
         if (index + 1 < kVoiceCount)
             setVoiceEnabled(index + 1, (value & 0x02u) != 0);
+    }
+
+    // Decode $4000-$4013 channel registers into voice state.
+    void APU::decodeChannelRegister(u16 address, u8 value)
+    {
+        if (address <= 0x4007)
+        {
+            // Pulse 1 ($4000-$4003) or Pulse 2 ($4004-$4007).
+            const u8 voiceIndex = static_cast<u8>((address >= 0x4004) ? 1 : 0);
+            Voice &v = voices_[voiceIndex];
+            v.type = VoiceType::Pulse;
+            switch (address & 0x0003u)
+            {
+            case 0x0: // $4000/$4004: duty, volume, envelope
+                v.duty = static_cast<u8>((value >> 6) & 0x03u);
+                v.volume = static_cast<u8>(value & 0x0Fu);
+                v.envelopeLoop = (value & 0x20u) != 0;
+                v.envelopeDisable = (value & 0x10u) != 0;
+                v.envelopeStart = true;
+                break;
+            case 0x1: // $4001/$4005: sweep
+                v.sweepEnabled = (value & 0x80u) != 0;
+                v.sweepPeriod = static_cast<u8>((value >> 4) & 0x07u);
+                v.sweepNegate = (value & 0x08u) != 0;
+                v.sweepShift = static_cast<u8>(value & 0x07u);
+                break;
+            case 0x2: // $4002/$4006: period low
+                v.period = static_cast<u16>((v.period & 0x0700u) | value);
+                v.phaseInc = periodToPhaseInc(v.period);
+                break;
+            case 0x3: // $4003/$4007: length + period high
+            {
+                v.period = static_cast<u16>((v.period & 0x00FFu) | ((value & 0x07u) << 8));
+                v.phaseInc = periodToPhaseInc(v.period);
+                v.lengthCounter = kLengthTable[value >> 3];
+                v.lengthEnabled = true;
+                v.envelopeStart = true;
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        else if (address <= 0x400B)
+        {
+            // Triangle ($4008-$400B).
+            Voice &v = voices_[2];
+            v.type = VoiceType::Triangle;
+            switch (address & 0x0003u)
+            {
+            case 0x0: // $4008: control flag + linear counter
+                v.envelopeLoop = (value & 0x80u) != 0;
+                v.envelopeCounter = static_cast<u8>(value & 0x7Fu);
+                break;
+            case 0x2: // $400A: period low
+                v.period = static_cast<u16>((v.period & 0x0700u) | value);
+                v.phaseInc = periodToPhaseInc(v.period);
+                break;
+            case 0x3: // $400B: length + period high
+            {
+                v.period = static_cast<u16>((v.period & 0x00FFu) | ((value & 0x07u) << 8));
+                v.phaseInc = periodToPhaseInc(v.period);
+                v.lengthCounter = kLengthTable[value >> 3];
+                v.lengthEnabled = true;
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        else if (address <= 0x400F)
+        {
+            // Noise ($400C-$400F).
+            Voice &v = voices_[3];
+            v.type = VoiceType::Noise;
+            switch (address & 0x0003u)
+            {
+            case 0x0: // $400C: volume/envelope
+                v.volume = static_cast<u8>(value & 0x0Fu);
+                v.envelopeLoop = (value & 0x20u) != 0;
+                v.envelopeDisable = (value & 0x10u) != 0;
+                v.envelopeStart = true;
+                break;
+            case 0x1: // $400D: unused
+                break;
+            case 0x2: // $400E: noise mode + period
+                v.noiseShortMode = (value & 0x80u) != 0;
+                v.period = static_cast<u16>(value & 0x0Fu);
+                v.phaseInc = kNoiseRateTable[value & 0x0Fu];
+                break;
+            case 0x3: // $400F: length
+                v.lengthCounter = kLengthTable[value >> 3];
+                v.lengthEnabled = true;
+                v.envelopeStart = true;
+                break;
+            }
+        }
+        else if (address <= 0x4013)
+        {
+            // DMC ($4010-$4013) -> Sample voice (voice 4).
+            Voice &v = voices_[4];
+            v.type = VoiceType::Sample;
+            switch (address & 0x0003u)
+            {
+            case 0x0: // $4010: flags + rate
+                v.sampleLoopEnabled = (value & 0x40u) != 0;
+                v.sampleRate = static_cast<u8>(value & 0x0Fu);
+                v.phaseInc = kNoiseRateTable[value & 0x0Fu];
+                break;
+            case 0x1: // $4011: direct load
+                v.sampleOutput = static_cast<u8>(value & 0x7Fu);
+                break;
+            case 0x2: // $4012: sample address
+                v.sampleAddress = static_cast<u16>(0xC000 + value * 64);
+                break;
+            case 0x3: // $4013: sample length
+                v.sampleLength = static_cast<u16>(value * 16 + 1);
+                break;
+            }
+        }
     }
 
     void APU::reset()

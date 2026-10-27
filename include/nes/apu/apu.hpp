@@ -226,6 +226,7 @@ namespace nes
         void clockVoice(u8 voiceIndex);
         void clockTracker();
         void processTrackerCell(u8 voiceIndex, const TrackerCell &cell);
+        void decodeChannelRegister(u16 address, u8 value);
         void mixVoice(u8 voiceIndex, float &left, float &right);
         [[nodiscard]] u32 periodToPhaseInc(u16 period) const;
         [[nodiscard]] u32 noteToPeriod(u16 note) const;

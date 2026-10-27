@@ -3,7 +3,7 @@
 #include <memory>
 
 namespace nes {
-NES::NES() : cpu_(bus_) { bus_.connectController(&controller_); }
+NES::NES() : cpu_(bus_) { bus_.connectController(&controller_); bus_.connectApu(&apu_); }
 bool NES::loadCartridge(const std::filesystem::path& path, std::string& error) {
     auto loaded = loadInes(path);
     if (!loaded) { error = loaded.error; return false; }

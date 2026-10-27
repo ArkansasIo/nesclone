@@ -6,12 +6,14 @@
 namespace nes {
 class Mapper;
 class Controller;
+class APU;
 
 class Bus {
 public:
     Bus();
     void connectMapper(std::shared_ptr<Mapper> mapper);
     void connectController(Controller* controller);
+    void connectApu(APU* apu);
     [[nodiscard]] u8 read(u16 address);
     void write(u16 address, u8 value);
     void resetRam();
@@ -21,5 +23,6 @@ private:
     std::array<u8, 0x18> apuIoRegisters_{};
     std::shared_ptr<Mapper> mapper_;
     Controller* controller_ = nullptr;
+    APU* apu_ = nullptr;
 };
 }
