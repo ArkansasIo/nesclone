@@ -1,4 +1,5 @@
 #pragma once
+#include "nes/apu/apu.hpp"
 #include "nes/cartridge/ines.hpp"
 #include "nes/cartridge/mapper.hpp"
 #include "nes/controller/controller.hpp"
@@ -18,12 +19,14 @@ public:
     void clock();
     [[nodiscard]] Cpu6502& cpu() { return cpu_; }
     [[nodiscard]] Bus& bus() { return bus_; }
+    [[nodiscard]] APU& apu() { return apu_; }
     [[nodiscard]] Controller& controller() { return controller_; }
     [[nodiscard]] const CartridgeImage* cartridge() const { return image_ ? &*image_ : nullptr; }
 private:
     Bus bus_;
     Controller controller_;
     Cpu6502 cpu_;
+    APU apu_;
     std::shared_ptr<Mapper> mapper_;
     std::optional<CartridgeImage> image_;
 };

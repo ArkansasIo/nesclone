@@ -24,6 +24,6 @@ bool NES::loadCartridge(const std::filesystem::path& path, std::string& error) {
     reset();
     return true;
 }
-void NES::reset() { bus_.resetRam(); if (mapper_) mapper_->reset(); cpu_.reset(); }
-void NES::clock() { cpu_.clock(); }
+void NES::reset() { bus_.resetRam(); if (mapper_) mapper_->reset(); cpu_.reset(); apu_.reset(); }
+void NES::clock() { cpu_.clock(); apu_.clock(); }
 }
